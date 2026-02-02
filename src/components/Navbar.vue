@@ -21,7 +21,15 @@
       </template>
     </q-input>
 
-    <q-btn color="positive" label="ACCESO CLIENTES" push class="q-px-md text-weight-bold" />
+<q-btn
+  flat
+  dense
+  no-caps
+  color="white"
+  icon="login"
+  label="Iniciar Sesión"
+  to="/login"
+/>
   </q-toolbar>
 </template>
 
