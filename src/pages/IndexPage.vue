@@ -1,23 +1,58 @@
 <template>
   <q-page class="bg-grey-2">
     <div class="q-pa-md row items-center justify-between">
-      <div class="text-h6 text-grey-8 text-weight-bold">CATÁLOGO DE PRODUCTOS</div>
-      <q-chip outline color="grey-7" icon="event"> Actualizado hoy </q-chip>
+      <div class="column">
+        <div class="text-h6 text-grey-8 text-weight-bold">CATÁLOGO DE PRODUCTOS</div>
+        <div class="text-subtitle2 text-primary">
+          {{ textoFiltro }}
+        </div>
+      </div>
+
+      <q-chip outline color="grey-7" icon="event"> Actualizado: {{ fechaHoy }} </q-chip>
     </div>
 
-    <ProductGrid />
+    <ProductGrid :filtro-categoria="categoriaActual" :busqueda="termBusqueda" />
   </q-page>
 </template>
 
 <script setup>
-// Importamos el componente de la carpeta components
+import { ref, onMounted, watch, computed } from 'vue'
+import { useRoute } from 'vue-router'
 import ProductGrid from 'components/ProductGrid.vue'
 
-// Aquí podrías más adelante recibir los datos de la base de datos de DonWeb
+const route = useRoute()
+const categoriaActual = ref('todos')
+const termBusqueda = ref('')
+
+const fechaHoy = computed(() => {
+  return new Date().toLocaleDateString('es-AR')
+})
+
+const textoFiltro = computed(() => {
+  if (termBusqueda.value) {
+    return `Resultados para: "${termBusqueda.value}"`
+  }
+  return `Mostrando: ${categoriaActual.value.toUpperCase()}`
+})
+
+const actualizarFiltro = () => {
+  categoriaActual.value = route.query.filtro || 'todos'
+  termBusqueda.value = route.query.busqueda || ''
+}
+
+onMounted(() => {
+  actualizarFiltro()
+})
+
+watch(
+  () => route.query,
+  () => {
+    actualizarFiltro()
+  },
+)
 </script>
 
 <style scoped>
-/* Un retoque para que el catálogo no esté pegado a los bordes */
 .q-page {
   max-width: 1400px;
   margin: 0 auto;

@@ -13,7 +13,7 @@
       </q-card>
     </div>
 
-    <div v-for="pro in productos" :key="pro.id" class="col-12 col-sm-4 col-md-3">
+    <div v-for="pro in productosFiltrados" :key="pro.id" class="col-12 col-sm-4 col-md-3">
       <ProductCard
         v-bind="pro"
         :is-admin="isAdmin"
@@ -22,39 +22,43 @@
       />
     </div>
 
+    <div v-if="productosFiltrados.length === 0" class="col-12 text-center q-pa-xl">
+      <q-icon name="search_off" size="64px" color="grey-5" />
+      <div class="text-h6 text-grey-6 q-mt-md">
+        {{ errorApi ? 'Error de conexión con la base de datos' : 'No se encontraron productos' }}
+      </div>
+      <div v-if="errorApi" class="text-caption text-red q-mt-sm">
+        Revisa que config.php esté bien configurado.
+      </div>
+    </div>
+
     <q-dialog v-model="modalProducto" persistent>
-      <q-card style="min-width: 400px; border-radius: 15px">
-        <q-card-section :class="esEdicion ? 'bg-orange text-white' : 'bg-grey-10 text-white'" class="row items-center">
-          <div class="text-h6">{{ esEdicion ? 'Editar Producto' : 'Cargar Nuevo Producto' }}</div>
-          <q-space />
-          <q-btn icon="close" flat round dense v-close-popup />
+      <q-card style="min-width: 450px; border-radius: 15px">
+        <q-card-section :class="esEdicion ? 'bg-orange text-white' : 'bg-grey-10 text-white'">
+          <div class="text-h6">{{ esEdicion ? 'EDITAR PRODUCTO' : 'NUEVO PRODUCTO' }}</div>
         </q-card-section>
 
-        <q-card-section class="q-pt-md">
+        <q-card-section class="q-pa-md">
           <q-form @submit="guardarProducto" class="q-gutter-md">
             <q-input v-model="formPro.nombre" label="Nombre" filled :rules="[val => !!val || 'Requerido']" />
-            <q-input v-model="formPro.codigo" label="Código" filled :rules="[val => !!val || 'Requerido']" />
-            <q-input v-model="formPro.descripcion" label="Descripción" filled type="textarea" rows="2" />
-
             <div class="row q-col-gutter-sm">
-              <q-input v-model.number="formPro.precio" label="Precio" filled type="number" class="col-6" prefix="$" />
-              <q-input v-model.number="formPro.stock" label="Stock" filled type="number" class="col-6" />
+              <q-input v-model="formPro.codigo" label="Código" filled class="col-6" :rules="[val => !!val || 'Requerido']" />
+              <q-input v-model="formPro.precio" label="Precio" type="number" filled class="col-6" :rules="[val => !!val || 'Requerido']" />
             </div>
-
-            <q-file v-if="!esEdicion" v-model="foto" label="Seleccionar Imagen" filled accept=".jpg, image/*">
-              <template v-slot:prepend><q-icon name="image" /></template>
-            </q-file>
-
-            <div class="row q-mt-lg">
-              <q-btn label="Cancelar" flat color="grey" v-close-popup class="col" />
-              <q-btn
-                :label="esEdicion ? 'Actualizar' : 'Guardar'"
-                type="submit"
-                :color="esEdicion ? 'orange' : 'primary'"
-                class="col q-ml-sm"
-                :loading="loading"
-              />
+            <div class="row q-col-gutter-sm">
+              <div class="col-6">
+                <q-select filled v-model="formPro.categoria" :options="['Cascos', 'Lubricantes', 'Repuestos', 'Indumentaria', 'Accesorios']" label="Categoría" :rules="[val => !!val || 'Requerido']" />
+              </div>
+              <div class="col-6">
+                <q-select filled v-model="formPro.marca" :options="['LS2', 'MT Helmets', 'Motul', 'Ipone', 'Honda', 'Yamaha', 'Generic']" label="Marca" :rules="[val => !!val || 'Requerido']" />
+              </div>
             </div>
+            <q-input v-model="formPro.descripcion" label="Descripción" type="textarea" filled rows="3" />
+            <q-file v-if="!esEdicion" v-model="foto" label="Imagen" filled accept="image/*" />
+            <q-card-actions align="right">
+              <q-btn flat label="CANCELAR" v-close-popup />
+              <q-btn :label="esEdicion ? 'ACTUALIZAR' : 'GUARDAR'" type="submit" color="primary" :loading="loading" />
+            </q-card-actions>
           </q-form>
         </q-card-section>
       </q-card>
@@ -63,35 +67,95 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue'
-import axios from 'axios'
+/* eslint-disable */
+import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
+import axios from 'axios'
 import ProductCard from './ProductCard.vue'
 
 const $q = useQuasar()
+
+const props = defineProps({
+  filtroCategoria: { type: String, default: 'todos' },
+  busqueda: { type: String, default: '' }
+})
+
 const productos = ref([])
 const isAdmin = ref(false)
+const loading = ref(false)
 const modalProducto = ref(false)
 const esEdicion = ref(false)
-const loading = ref(false)
+const errorApi = ref(false)
 const foto = ref(null)
 
-// Modelo para el formulario
-const formPro = ref({ id: null, nombre: '', codigo: '', precio: 0, stock: 0, descripcion: '' })
+const formPro = ref({ id: null, nombre: '', codigo: '', precio: 0, stock: 0, descripcion: '', categoria: '', marca: '' })
+
+const productosFiltrados = computed(() => {
+  if (!Array.isArray(productos.value)) return []
+  let res = productos.value
+  if (props.filtroCategoria && props.filtroCategoria !== 'todos') {
+    res = res.filter(p => p.categoria && p.categoria.toLowerCase() === props.filtroCategoria.toLowerCase())
+  }
+  if (props.busqueda && props.busqueda.trim() !== '') {
+    const term = props.busqueda.toLowerCase()
+    res = res.filter(p =>
+      (p.nombre && p.nombre.toLowerCase().includes(term)) ||
+      (p.codigo && p.codigo.toLowerCase().includes(term)) ||
+      (p.marca && p.marca.toLowerCase().includes(term))
+    )
+  }
+  return res
+})
 
 const cargarProductos = async () => {
   try {
-    const response = await axios.get('https://saproracing.knighttech.com.ar/api.php')
-    productos.value = response.data
-  } catch (error) {
-    console.error('Error al cargar:', error)
+    const res = await axios.get('https://saproracing.knighttech.com.ar/api.php')
+    if (Array.isArray(res.data)) {
+      productos.value = res.data
+      errorApi.value = false
+    } else {
+      productos.value = []
+      errorApi.value = true
+    }
+  } catch (e) {
+    errorApi.value = true
   }
+}
+
+const confirmarEliminar = (id) => {
+  $q.dialog({
+    title: 'CONFIRMAR',
+    message: '¿Eliminar producto?',
+    cancel: true,
+    ok: { color: 'negative', label: 'ELIMINAR' }
+  }).onOk(async () => {
+    try {
+      // AQUÍ ESTABA EL PROBLEMA: Agregamos isAdmin: 'true'
+      const response = await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=eliminar', {
+        id: id,
+        isAdmin: 'true'
+      })
+
+      if (response.data.success) {
+        $q.notify({ color: 'negative', message: 'Eliminado' })
+        cargarProductos()
+      } else {
+         $q.notify({ color: 'warning', message: response.data.mensaje || 'Error al eliminar' })
+      }
+    } catch (e) {
+      // Si sigue dando 403, mostramos un mensaje claro
+      if (e.response && e.response.status === 403) {
+        $q.notify({ color: 'negative', message: 'No tienes permisos para eliminar' })
+      } else {
+        $q.notify({ color: 'negative', message: 'Error de red' })
+      }
+    }
+  })
 }
 
 const abrirModalNuevo = () => {
   esEdicion.value = false
-  formPro.value = { id: null, nombre: '', codigo: '', precio: 0, stock: 0, descripcion: '' }
-  foto.value = null
+  formPro.value = { id: null, nombre: '', codigo: '', precio: 0, stock: 0, descripcion: '', categoria: '', marca: '' }
   modalProducto.value = true
 }
 
@@ -105,43 +169,22 @@ const guardarProducto = async () => {
   loading.value = true
   try {
     if (esEdicion.value) {
-      // EDITAR PRODUCTO
-      await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=editar', formPro.value)
-      $q.notify({ color: 'orange', message: '¡Producto actualizado!', icon: 'edit' })
+      await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=editar', {
+        ...formPro.value,
+        isAdmin: 'true'
+      })
     } else {
-      // NUEVO PRODUCTO
       const fd = new FormData()
-      Object.keys(formPro.value).forEach(key => fd.append(key, formPro.value[key]))
+      Object.keys(formPro.value).forEach(key => { if (formPro.value[key] !== null) fd.append(key, formPro.value[key]) })
       if (foto.value) fd.append('imagen', foto.value)
-
+      fd.append('isAdmin', 'true')
       await axios.post('https://saproracing.knighttech.com.ar/agregar_producto.php', fd)
-      $q.notify({ color: 'positive', message: '¡Producto guardado!', icon: 'check' })
     }
     modalProducto.value = false
     cargarProductos()
-  } catch (err) {
-    console.error('Error en operación:', err)
-    $q.notify({ color: 'negative', message: 'Error de conexión' })
-  } finally {
-    loading.value = false
-  }
-}
-
-const confirmarEliminar = (id) => {
-  $q.dialog({
-    title: '¿Eliminar producto?',
-    message: 'Esta acción borrará el registro y la imagen del servidor.',
-    cancel: true,
-    persistent: true
-  }).onOk(async () => {
-    try {
-      await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=eliminar', { id })
-      $q.notify({ color: 'negative', icon: 'delete', message: 'Eliminado con éxito' })
-      cargarProductos()
-    } catch (err) {
-      console.error('Error al eliminar:', err)
-    }
-  })
+    $q.notify({ color: 'positive', message: 'Guardado' })
+  } catch (e) { $q.notify({ color: 'negative', message: 'Error al guardar' }) }
+  finally { loading.value = false }
 }
 
 onMounted(() => {
@@ -149,14 +192,3 @@ onMounted(() => {
   cargarProductos()
 })
 </script>
-
-<style scoped>
-.my-card {
-  width: 100%;
-  max-width: 250px;
-  margin: 0 auto;
-}
-.border-dashed {
-  border-radius: 8px;
-}
-</style>

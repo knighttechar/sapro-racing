@@ -1,11 +1,27 @@
 <template>
   <q-card class="my-card no-shadow border-grey-3" bordered>
     <q-img
-      :src="imagen && imagen !== 'default.jpg' ? 'https://saproracing.knighttech.com.ar/imagenes/' + imagen : 'https://placehold.co/300x300?text=Sapro+Racing'"
+      :src="
+        imagen && imagen !== 'default.jpg'
+          ? `${API_URL}/imagenes/${imagen}`
+          : 'https://placehold.co/300x300?text=Sapro+Racing'
+      "
       ratio="1"
     >
-      <div v-if="isAdmin" class="absolute-top-right q-gutter-xs q-pa-sm" style="background: transparent">
-        <q-btn round color="orange" icon="edit" size="sm" @click="$emit('editar', {id, nombre, precio, stock, descripcion, codigo})" />
+      <div
+        v-if="isAdmin"
+        class="absolute-top-right q-gutter-xs q-pa-sm"
+        style="background: transparent"
+      >
+        <q-btn
+          round
+          color="orange"
+          icon="edit"
+          size="sm"
+          @click="
+            $emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })
+          "
+        />
         <q-btn round color="negative" icon="delete" size="sm" @click="$emit('eliminar', id)" />
       </div>
 
@@ -23,7 +39,8 @@
       </div>
 
       <div class="text-h6 text-blue-7 q-mt-xs">${{ precio }}</div>
-      <q-badge :color="stock > 0 ? 'green' : 'red'">Stock: {{ stock }}</q-badge>
+
+      <q-badge :color="colorStock" class="q-pa-xs"> STOCK: {{ stock }} </q-badge>
     </q-card-section>
 
     <q-card-actions align="center" class="q-pb-md">
@@ -33,7 +50,11 @@
 </template>
 
 <script setup>
-defineProps({
+import { computed } from 'vue'
+
+const API_URL = 'https://saproracing.knighttech.com.ar'
+
+const props = defineProps({
   id: [Number, String],
   nombre: String,
   codigo: String,
@@ -41,13 +62,30 @@ defineProps({
   stock: [String, Number],
   imagen: String,
   descripcion: String,
-  isAdmin: Boolean // Nueva prop para controlar la vista
+  categoria: String,
+  marca: String,
+  isAdmin: Boolean,
 })
 
 defineEmits(['eliminar', 'editar'])
+
+// Lógica inteligente para el color del stock
+const colorStock = computed(() => {
+  const s = Number(props.stock)
+  if (s <= 0) return 'grey-10' // Sin stock (Negro/Gris oscuro)
+  if (s <= 5) return 'red' // Crítico (Rojo)
+  if (s <= 12) return 'orange' // Advertencia (Naranja/Amarillo fuerte)
+  return 'green' // Saludable (Verde)
+})
 </script>
 
 <style scoped>
-.my-card { transition: transform 0.2s; height: 100%; }
-.my-card:hover { transform: translateY(-5px); border-color: #1976D2; }
+.my-card {
+  transition: transform 0.2s;
+  height: 100%;
+}
+.my-card:hover {
+  transform: translateY(-5px);
+  border-color: #1976d2;
+}
 </style>
