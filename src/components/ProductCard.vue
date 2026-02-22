@@ -15,14 +15,23 @@
       >
         <q-btn
           round
-          color="orange"
+          color="white"
+          text-color="orange-9"
           icon="edit"
           size="sm"
-          @click="
-            $emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })
-          "
+          @click="$emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })"
         />
         <q-btn round color="negative" icon="delete" size="sm" @click="$emit('eliminar', id)" />
+      </div>
+
+      <div v-if="isAdmin" class="absolute-bottom-right q-pa-sm">
+        <q-btn
+          round
+          color="primary"
+          icon="add_shopping_cart"
+          @click="agregarItem"
+          class="shadow-5"
+        />
       </div>
 
       <template v-slot:loading>
@@ -32,7 +41,7 @@
 
     <q-card-section class="q-pa-sm text-center">
       <div class="text-caption text-grey-6">CÓDIGO: {{ codigo }}</div>
-      <div class="text-subtitle2 text-weight-bold">{{ nombre }}</div>
+      <div class="text-subtitle2 text-weight-bold ellipsis">{{ nombre }}</div>
 
       <div class="text-caption text-grey-7 ellipsis-2-lines" style="min-height: 32px">
         {{ descripcion || 'Sin descripción' }}
@@ -42,15 +51,12 @@
 
       <q-badge :color="colorStock" class="q-pa-xs"> STOCK: {{ stock }} </q-badge>
     </q-card-section>
-
-    <q-card-actions align="center" class="q-pb-md">
-      <q-btn outline color="blue-7" label="VER DETALLES" size="sm" class="full-width" />
-    </q-card-actions>
   </q-card>
 </template>
 
 <script setup>
 import { computed } from 'vue'
+import { useCarrito } from 'src/composables/useCarrito' // Importamos el composable
 
 const API_URL = 'https://saproracing.knighttech.com.ar'
 
@@ -67,15 +73,30 @@ const props = defineProps({
   isAdmin: Boolean,
 })
 
-defineEmits(['eliminar', 'editar'])
+// eslint-disable-next-line no-unused-vars
+const emit = defineEmits(['eliminar', 'editar'])
 
-// Lógica inteligente para el color del stock
+// Usamos el composable
+const { agregarAlCarrito } = useCarrito()
+
+const agregarItem = () => {
+  // Construimos el objeto producto basado en las props
+  const producto = {
+    id: props.id,
+    nombre: props.nombre,
+    codigo: props.codigo,
+    precio: props.precio,
+    imagen: props.imagen
+  }
+  agregarAlCarrito(producto)
+}
+
 const colorStock = computed(() => {
   const s = Number(props.stock)
-  if (s <= 0) return 'grey-10' // Sin stock (Negro/Gris oscuro)
-  if (s <= 5) return 'red' // Crítico (Rojo)
-  if (s <= 12) return 'orange' // Advertencia (Naranja/Amarillo fuerte)
-  return 'green' // Saludable (Verde)
+  if (s <= 0) return 'grey-10'
+  if (s <= 2) return 'red'
+  if (s <= 5) return 'orange'
+  return 'green'
 })
 </script>
 

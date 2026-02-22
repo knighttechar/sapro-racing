@@ -14,8 +14,16 @@ if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
     exit;
 }
 
-// Leemos el JSON del cuerpo de la petición
-$data = json_decode(file_get_contents("php://input"), true) ?? [];
+// --- LECTURA DE DATOS (JSON o FormData) ---
+$contentType = $_SERVER['CONTENT_TYPE'] ?? '';
+if (strpos($contentType, 'application/json') !== false) {
+    // JSON
+    $data = json_decode(file_get_contents("php://input"), true) ?? [];
+} else {
+    // FormData
+    $data = $_POST;
+}
+
 $accion = $_GET['accion'] ?? '';
 
 // --- VALIDACIÓN DE ACCIÓN AL INICIO ---
@@ -167,7 +175,7 @@ try {
             $pdo->beginTransaction();
 
             // 1. Verificar que el producto existe
-            $stmtCheck = $pdo->prepare("SELECT id, nombre, codigo FROM productos WHERE id = ? LIMIT 1");
+            $stmtCheck = $pdo->prepare("SELECT id, nombre, codigo, imagen FROM productos WHERE id = ? LIMIT 1");
             $stmtCheck->execute([$id]);
             $productoAnterior = $stmtCheck->fetch(PDO::FETCH_ASSOC);
 
@@ -188,22 +196,82 @@ try {
                 }
             }
 
-            // 3. Actualizar
-            $sql = "UPDATE productos SET nombre = ?, codigo = ?, precio = ?, stock = ?, descripcion = ?, categoria = ?, marca = ?, updated_at = NOW() WHERE id = ?";
+            // 3. Procesar imagen si existe
+            $nombreImagenNueva = $productoAnterior['imagen'];
+            if (isset($_FILES['imagen']) && $_FILES['imagen']['error'] === UPLOAD_ERR_OK) {
+                $file = $_FILES['imagen'];
+                
+                // Validar tamaño
+                if ($file['size'] > $uploadConfig['max_size']) {
+                    $pdo->rollBack();
+                    echo json_encode(["success" => false, "mensaje" => "La imagen supera el tamaño máximo permitido"]);
+                    exit;
+                }
+
+                // Validar MIME type
+                $finfo = finfo_open(FILEINFO_MIME_TYPE);
+                $mimeType = finfo_file($finfo, $file['tmp_name']);
+                finfo_close($finfo);
+
+                if (!in_array($mimeType, $uploadConfig['allowed_mimes'])) {
+                    $pdo->rollBack();
+                    echo json_encode(["success" => false, "mensaje" => "Formato de imagen no permitido"]);
+                    exit;
+                }
+
+                // Validar extensión
+                $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+                if (!in_array($ext, $uploadConfig['allowed_ext'])) {
+                    $pdo->rollBack();
+                    echo json_encode(["success" => false, "mensaje" => "Extensión de archivo no permitida"]);
+                    exit;
+                }
+
+                // Crear directorio si no existe
+                $uploadDir = $uploadConfig['dir'];
+                if (!is_dir($uploadDir)) {
+                    mkdir($uploadDir, 0755, true);
+                }
+
+                // Generar nombre seguro
+                $codigoLimpio = preg_replace("/[^a-zA-Z0-9_-]/", "", str_replace(' ', '_', $codigo));
+                $nombreImagenNueva = time() . "_" . $codigoLimpio . "." . $ext;
+                $rutaDestino = $uploadDir . "/" . $nombreImagenNueva;
+
+                if (!move_uploaded_file($file['tmp_name'], $rutaDestino)) {
+                    $pdo->rollBack();
+                    echo json_encode(["success" => false, "mensaje" => "Error al guardar la imagen"]);
+                    exit;
+                }
+
+                // Eliminar imagen anterior si no es default
+                if ($productoAnterior['imagen'] !== 'default.jpg') {
+                    $rutaAntigua = $uploadDir . "/" . basename($productoAnterior['imagen']);
+                    if (file_exists($rutaAntigua)) {
+                        @unlink($rutaAntigua);
+                    }
+                }
+            }
+
+            // 4. Actualizar
+            $sql = "UPDATE productos SET nombre = ?, codigo = ?, precio = ?, stock = ?, descripcion = ?, categoria = ?, marca = ?, imagen = ?, updated_at = NOW() WHERE id = ?";
             $stmt = $pdo->prepare($sql);
-            $stmt->execute([$nombre, $codigo, $precio, $stock, $descripcion, $categoria, $marca, $id]);
+            $stmt->execute([$nombre, $codigo, $precio, $stock, $descripcion, $categoria, $marca, $nombreImagenNueva, $id]);
             $filasAfectadas = $stmt->rowCount();
 
             // Confirmar transacción
             $pdo->commit();
 
-            // 4. Registrar cambios en auditoría (FUERA de la transacción)
+            // 5. Registrar cambios en auditoría (FUERA de la transacción)
             $cambios = [];
             if ($nombre !== $productoAnterior['nombre']) {
                 $cambios[] = "nombre: '{$productoAnterior['nombre']}' → '{$nombre}'";
             }
             if ($codigo !== $productoAnterior['codigo']) {
                 $cambios[] = "código: '{$productoAnterior['codigo']}' → '{$codigo}'";
+            }
+            if ($nombreImagenNueva !== $productoAnterior['imagen']) {
+                $cambios[] = "imagen actualizada";
             }
             registrarAuditoria($pdo, 'EDITAR', 'productos', $id, implode("; ", $cambios));
 
