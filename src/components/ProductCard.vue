@@ -1,13 +1,6 @@
 <template>
   <q-card class="my-card no-shadow border-grey-3" bordered>
-    <q-img
-      :src="
-        imagen && imagen !== 'default.jpg'
-          ? `${API_URL}/imagenes/${imagen}`
-          : 'https://placehold.co/300x300?text=Sapro+Racing'
-      "
-      ratio="1"
-    >
+    <q-img :src="getImageUrl(imagen)" ratio="1">
       <div
         v-if="isAdmin"
         class="absolute-top-right q-gutter-xs q-pa-sm"
@@ -19,7 +12,9 @@
           text-color="orange-9"
           icon="edit"
           size="sm"
-          @click="$emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })"
+          @click="
+            $emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })
+          "
         />
         <q-btn round color="negative" icon="delete" size="sm" @click="$emit('eliminar', id)" />
       </div>
@@ -56,9 +51,8 @@
 
 <script setup>
 import { computed } from 'vue'
-import { useCarrito } from 'src/composables/useCarrito' // Importamos el composable
-
-const API_URL = 'https://saproracing.knighttech.com.ar'
+import { useCarrito } from 'src/composables/useCarrito'
+import { getImageUrl } from 'src/config/api'
 
 const props = defineProps({
   id: [Number, String],
@@ -86,7 +80,7 @@ const agregarItem = () => {
     nombre: props.nombre,
     codigo: props.codigo,
     precio: props.precio,
-    imagen: props.imagen
+    imagen: props.imagen,
   }
   agregarAlCarrito(producto)
 }

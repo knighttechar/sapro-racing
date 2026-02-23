@@ -15,7 +15,6 @@
 
     <q-dialog v-model="isOpen" position="right" full-height maximized>
       <q-card style="width: 400px; max-width: 100vw" class="column">
-
         <q-card-section class="bg-grey-9 text-white row items-center q-pb-sm">
           <div class="text-h6">Nuevo Pedido</div>
           <q-space />
@@ -32,26 +31,51 @@
             <q-item v-for="item in carrito" :key="item.id" class="q-py-md">
               <q-item-section avatar>
                 <q-avatar rounded size="50px">
-                  <img :src="item.imagen && item.imagen !== 'default.jpg' ? `https://saproracing.knighttech.com.ar/imagenes/${item.imagen}` : 'https://placehold.co/100'" style="object-fit: cover;">
+                  <img :src="getImageUrl(item.imagen)" style="object-fit: cover" />
                 </q-avatar>
               </q-item-section>
 
               <q-item-section>
                 <q-item-label class="text-weight-bold">{{ item.nombre }}</q-item-label>
                 <q-item-label caption>Código: {{ item.codigo }}</q-item-label>
-                <q-item-label class="text-primary text-weight-bold">${{ item.precio * item.cantidad }}</q-item-label>
+                <q-item-label class="text-primary text-weight-bold"
+                  >${{ item.precio * item.cantidad }}</q-item-label
+                >
               </q-item-section>
 
               <q-item-section side style="min-width: 100px">
                 <div class="row items-center no-wrap bg-grey-3 rounded-borders">
-                  <q-btn flat dense round size="sm" icon="remove" @click="item.cantidad > 1 ? item.cantidad-- : eliminarDelCarrito(item.id)" color="grey-8" />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="remove"
+                    @click="item.cantidad > 1 ? item.cantidad-- : eliminarDelCarrito(item.id)"
+                    color="grey-8"
+                  />
                   <div class="q-px-sm text-weight-bold">{{ item.cantidad }}</div>
-                  <q-btn flat dense round size="sm" icon="add" @click="item.cantidad++" color="grey-8" />
+                  <q-btn
+                    flat
+                    dense
+                    round
+                    size="sm"
+                    icon="add"
+                    @click="item.cantidad++"
+                    color="grey-8"
+                  />
                 </div>
               </q-item-section>
 
               <q-item-section side>
-                 <q-btn flat round color="negative" icon="delete" size="sm" @click="eliminarDelCarrito(item.id)" />
+                <q-btn
+                  flat
+                  round
+                  color="negative"
+                  icon="delete"
+                  size="sm"
+                  @click="eliminarDelCarrito(item.id)"
+                />
               </q-item-section>
             </q-item>
           </q-list>
@@ -68,7 +92,8 @@
             color="positive"
             class="full-width text-weight-bold q-py-sm"
             icon="check_circle"
-            :disable="carrito.length === 0"
+            :disable="carrito.length === 0 || loading"
+            :loading="loading"
             @click="procesarVenta"
           />
         </q-card-section>
@@ -81,9 +106,12 @@
 import { ref } from 'vue'
 import { useCarrito } from 'src/composables/useCarrito'
 import { useQuasar } from 'quasar'
+import axios from 'axios'
+import { API_ENDPOINTS, getImageUrl } from 'src/config/api'
 
 const $q = useQuasar()
 const isOpen = ref(false)
+const loading = ref(false)
 const { carrito, eliminarDelCarrito, totalItems, totalPrecio, vaciarCarrito } = useCarrito()
 
 const abrirCarrito = () => {
@@ -91,20 +119,66 @@ const abrirCarrito = () => {
 }
 
 const procesarVenta = () => {
-  // AQUÍ ES DONDE CONECTAREMOS CON PHP EN EL FUTURO PARA RESTAR STOCK
   $q.dialog({
     title: 'Confirmar Venta',
-    message: `¿Registrar venta por $${totalPrecio.value}? Esto (a futuro) descontará el stock.`,
+    message: `¿Registrar venta por $${totalPrecio.value}? Se descontará el stock de los productos.`,
     cancel: true,
-    persistent: true
-  }).onOk(() => {
-    // Simulación de éxito
-    $q.notify({
-      type: 'positive',
-      message: 'Venta registrada correctamente (Simulación)'
-    })
-    vaciarCarrito()
-    isOpen.value = false
+    persistent: true,
+  }).onOk(async () => {
+    loading.value = true
+    try {
+      // Construir carrito limpio solo con los datos necesarios
+      const carritoLimpio = carrito.value.map((item) => ({
+        id: Number(item.id),
+        cantidad: Number(item.cantidad),
+        precio: Number(item.precio),
+      }))
+
+      // Validar datos antes de enviar
+      if (carritoLimpio.some((item) => !item.id || item.cantidad <= 0 || item.precio < 0)) {
+        throw new Error('Datos inválidos en el carrito')
+      }
+
+      const totalLimpio = Number(totalPrecio.value)
+      if (totalLimpio <= 0) {
+        throw new Error('Total debe ser mayor a 0')
+      }
+
+      console.log('📤 Reques to:', { carrito: carritoLimpio, total: totalLimpio, admin: 'Admin' })
+
+      const response = await axios.post(API_ENDPOINTS.REGISTRAR_VENTA, {
+        carrito: carritoLimpio,
+        total: totalLimpio,
+        admin: 'Admin',
+      })
+
+      if (response.data.success) {
+        $q.notify({
+          type: 'positive',
+          message: response.data.mensaje || 'Venta registrada correctamente',
+          position: 'top',
+        })
+        vaciarCarrito()
+        isOpen.value = false
+      } else {
+        $q.notify({
+          type: 'negative',
+          message: response.data.mensaje || 'Error al registrar la venta',
+          position: 'top',
+        })
+      }
+    } catch (error) {
+      console.error('❌ Error:', error)
+      const mensajeError =
+        error.response?.data?.mensaje || error.message || 'Error de conexión al servidor'
+      $q.notify({
+        type: 'negative',
+        message: mensajeError,
+        position: 'top',
+      })
+    } finally {
+      loading.value = false
+    }
   })
 }
 </script>

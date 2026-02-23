@@ -63,6 +63,13 @@
                 :rules="[(val) => !!val || 'Requerido']"
               />
             </div>
+            <q-input
+              v-model="formPro.stock"
+              label="Stock"
+              type="number"
+              filled
+              :rules="[(val) => (val !== '' && val !== null) || 'Requerido']"
+            />
             <div class="row q-col-gutter-sm">
               <div class="col-6">
                 <q-select
@@ -113,6 +120,7 @@ import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
 import axios from 'axios'
 import ProductCard from './ProductCard.vue'
+import { API_ENDPOINTS } from 'src/config/api'
 
 const $q = useQuasar()
 
@@ -162,7 +170,7 @@ const productosFiltrados = computed(() => {
 
 const cargarProductos = async () => {
   try {
-    const res = await axios.get('https://saproracing.knighttech.com.ar/api.php')
+    const res = await axios.get(API_ENDPOINTS.PRODUCTOS)
     if (Array.isArray(res.data)) {
       productos.value = res.data
       errorApi.value = false
@@ -171,6 +179,7 @@ const cargarProductos = async () => {
       errorApi.value = true
     }
   } catch (e) {
+    console.error('Error cargando productos:', e)
     errorApi.value = true
   }
 }
@@ -183,14 +192,10 @@ const confirmarEliminar = (id) => {
     ok: { color: 'negative', label: 'ELIMINAR' },
   }).onOk(async () => {
     try {
-      // AQUÍ ESTABA EL PROBLEMA: Agregamos isAdmin: 'true'
-      const response = await axios.post(
-        'https://saproracing.knighttech.com.ar/api_acciones.php?accion=eliminar',
-        {
-          id: id,
-          isAdmin: 'true',
-        },
-      )
+      const response = await axios.post(API_ENDPOINTS.ELIMINAR_PRODUCTO, {
+        id: id,
+        isAdmin: 'true',
+      })
 
       if (response.data.success) {
         $q.notify({ color: 'negative', message: 'Eliminado' })
@@ -199,7 +204,6 @@ const confirmarEliminar = (id) => {
         $q.notify({ color: 'warning', message: response.data.mensaje || 'Error al eliminar' })
       }
     } catch (e) {
-      // Si sigue dando 403, mostramos un mensaje claro
       if (e.response && e.response.status === 403) {
         $q.notify({ color: 'negative', message: 'No tienes permisos para eliminar' })
       } else {
@@ -242,10 +246,10 @@ const guardarProducto = async () => {
         })
         fd.append('imagen', foto.value)
         fd.append('isAdmin', 'true')
-        await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=editar', fd)
+        await axios.post(API_ENDPOINTS.EDITAR_PRODUCTO, fd)
       } else {
         // Sin imagen nueva, enviar JSON normal
-        await axios.post('https://saproracing.knighttech.com.ar/api_acciones.php?accion=editar', {
+        await axios.post(API_ENDPOINTS.EDITAR_PRODUCTO, {
           ...formPro.value,
           isAdmin: 'true',
         })
@@ -257,13 +261,14 @@ const guardarProducto = async () => {
       })
       if (foto.value) fd.append('imagen', foto.value)
       fd.append('isAdmin', 'true')
-      await axios.post('https://saproracing.knighttech.com.ar/agregar_producto.php', fd)
+      await axios.post(API_ENDPOINTS.AGREGAR_PRODUCTO, fd)
     }
     foto.value = null
     modalProducto.value = false
     cargarProductos()
     $q.notify({ color: 'positive', message: 'Guardado' })
   } catch (e) {
+    console.error('Error al guardar:', e)
     $q.notify({ color: 'negative', message: 'Error al guardar' })
   } finally {
     loading.value = false
