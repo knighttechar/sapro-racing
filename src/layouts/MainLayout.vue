@@ -41,20 +41,67 @@
         />
       </q-toolbar>
 
-      <div class="bg-grey-9 q-py-sm q-px-md row items-center justify-center q-gutter-x-md no-wrap scroll">
-
+      <div
+        class="bg-grey-9 q-py-sm q-px-md row items-center justify-center q-gutter-x-md no-wrap scroll"
+      >
         <q-btn flat no-caps color="white" icon="home" label="INICIO" @click="irAInicio" />
 
-        <q-btn flat no-caps color="white" icon="sports_motorsports" label="CASCOS" @click="irACategoria('Cascos')" />
+        <q-btn
+          flat
+          no-caps
+          color="white"
+          icon="sports_motorsports"
+          label="CASCOS"
+          @click="irACategoria('Cascos')"
+        />
 
-        <q-btn flat no-caps color="white" icon="opacity" label="LUBRICANTES" @click="irACategoria('Lubricantes')" />
+        <q-btn
+          flat
+          no-caps
+          color="white"
+          icon="opacity"
+          label="LUBRICANTES"
+          @click="irACategoria('Lubricantes')"
+        />
 
-        <q-btn flat no-caps color="white" icon="settings" label="REPUESTOS" @click="irACategoria('Repuestos')" />
+        <q-btn
+          flat
+          no-caps
+          color="white"
+          icon="settings"
+          label="REPUESTOS"
+          @click="irACategoria('Repuestos')"
+        />
 
-        <q-btn flat no-caps color="white" icon="checkroom" label="INDUMENTARIA" @click="irACategoria('Indumentaria')" />
+        <q-btn
+          flat
+          no-caps
+          color="white"
+          icon="checkroom"
+          label="INDUMENTARIA"
+          @click="irACategoria('Indumentaria')"
+        />
 
-        <q-btn flat no-caps color="white" icon="handyman" label="ACCESORIOS" @click="irACategoria('Accesorios')" />
+        <q-btn
+          flat
+          no-caps
+          color="white"
+          icon="handyman"
+          label="ACCESORIOS"
+          @click="irACategoria('Accesorios')"
+        />
 
+        <q-separator vertical color="white" v-if="isAdmin" class="q-mx-md" />
+
+        <q-btn
+          v-if="isAdmin"
+          flat
+          no-caps
+          color="white"
+          icon="storage"
+          label="DATOS"
+          @click="irADatos"
+        />
       </div>
     </q-header>
 
@@ -92,6 +139,10 @@ const irABusqueda = () => {
   if (search.value.trim()) {
     router.push({ path: '/', query: { busqueda: search.value } })
   }
+}
+
+const irADatos = () => {
+  router.push('/datos')
 }
 
 // --- LÓGICA DE INACTIVIDAD Y AUTH (Mantenida intacta) ---
