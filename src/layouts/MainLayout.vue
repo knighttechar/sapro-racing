@@ -102,6 +102,16 @@
           label="DATOS"
           @click="irADatos"
         />
+
+        <q-btn
+          v-if="isAdmin"
+          flat
+          no-caps
+          color="white"
+          icon="bar_chart"
+          label="ESTADÍSTICAS"
+          @click="irAEstadisticas"
+        />
       </div>
     </q-header>
 
@@ -143,6 +153,10 @@ const irABusqueda = () => {
 
 const irADatos = () => {
   router.push('/datos')
+}
+
+const irAEstadisticas = () => {
+  router.push('/estadisticas')
 }
 
 // --- LÓGICA DE INACTIVIDAD Y AUTH (Mantenida intacta) ---
