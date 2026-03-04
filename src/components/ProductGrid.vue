@@ -84,9 +84,10 @@
                 <q-select
                   filled
                   v-model="formPro.marca"
-                  :options="['LS2', 'MT Helmets', 'Motul', 'Ipone', 'Honda', 'Yamaha', 'Generic']"
+                  :options="marcasDisponibles"
                   label="Marca"
                   :rules="[(val) => !!val || 'Requerido']"
+                  :disable="!formPro.categoria"
                 />
               </div>
             </div>
@@ -129,6 +130,15 @@ const props = defineProps({
   busqueda: { type: String, default: '' },
 })
 
+// Mapeo de categorías a marcas disponibles
+const categoriaMarcaMap = {
+  Cascos: ['Hawk', 'Hawk'],
+  Lubricantes: ['Castrol', 'Castrol'],
+  Repuestos: ['Catimoto', 'Catimoto'],
+  Indumentaria: ['Ls2', 'Ls2'],
+  Accesorios: ['Mac', 'Mac'],
+}
+
 const productos = ref([])
 const isAdmin = ref(false)
 const loading = ref(false)
@@ -146,6 +156,14 @@ const formPro = ref({
   descripcion: '',
   categoria: '',
   marca: '',
+})
+
+// Computed para obtener las opciones de marca según la categoría
+const marcasDisponibles = computed(() => {
+  if (formPro.value.categoria && categoriaMarcaMap[formPro.value.categoria]) {
+    return categoriaMarcaMap[formPro.value.categoria]
+  }
+  return []
 })
 
 const productosFiltrados = computed(() => {

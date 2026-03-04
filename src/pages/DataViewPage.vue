@@ -9,16 +9,17 @@
 
     <!-- SELECTOR DE TABLA Y FILTROS -->
     <div class="row q-gap-md q-mb-lg items-end">
-      <q-select
-        outlined
-        v-model="tablaSeleccionada"
-        :options="tablasDisponibles"
-        label="Seleccionar tabla"
-        class="col-xs-12 col-sm-6 col-md-3"
-        @update:model-value="cargarDatos"
-        emit-value
-        map-options
-      />
+      <div class="col-xs-12 col-sm-6 col-md-3">
+        <q-select
+          outlined
+          disable
+          :model-value="{ label: 'Detalles de Ventas Consolidado', value: 'venta_detallada' }"
+          :options="[{ label: 'Detalles de Ventas Consolidado', value: 'venta_detallada' }]"
+          label="Vista de datos"
+          emit-value
+          map-options
+        />
+      </div>
 
       <q-input
         outlined
@@ -84,7 +85,7 @@
             <q-tr :props="props">
               <q-td v-for="col in props.cols" :key="col.name" :props="props">
                 <div class="text-truncate" style="max-width: 200px">
-                  {{ formatearDato(props.row[col.name]) }}
+                  {{ formatearDato(props.row[col.name], col.name) }}
                 </div>
               </q-td>
             </q-tr>
@@ -133,12 +134,6 @@ import { useRouter } from 'vue-router'
 const router = useRouter()
 
 // DATOS
-const tablaSeleccionada = ref('detalle_ventas')
-const tablasDisponibles = ref([
-  { label: 'Detalles de Ventas', value: 'detalle_ventas' },
-  { label: 'Ventas', value: 'ventas' },
-])
-
 const datos = ref([])
 const columnas = ref([])
 const cargando = ref(false)
@@ -181,7 +176,7 @@ const cargarDatos = async () => {
   try {
     const offset = (paginaActual.value - 1) * registrosPorPagina.value
     const response = await fetch(
-      `api_get_tables.php?tabla=${tablaSeleccionada.value}&limit=${registrosPorPagina.value}&offset=${offset}`,
+      `api_venta_detallada.php?limit=${registrosPorPagina.value}&offset=${offset}`,
     )
 
     if (!response.ok) throw new Error('Error al cargar datos')
@@ -197,7 +192,10 @@ const cargarDatos = async () => {
         name: col,
         label: col.charAt(0).toUpperCase() + col.slice(1).replace(/_/g, ' '),
         field: col,
-        align: 'left',
+        align:
+          col.includes('precio') || col.includes('monto') || col.includes('subtotal')
+            ? 'right'
+            : 'left',
       }))
     } else {
       error.value = result.error || 'Error al cargar datos'
@@ -210,9 +208,31 @@ const cargarDatos = async () => {
   }
 }
 
-const formatearDato = (valor) => {
+const formatearDato = (valor, nombreColumna) => {
   if (valor === null || valor === undefined) return '—'
   if (typeof valor === 'object') return JSON.stringify(valor)
+
+  // Formatear como moneda si es precio o monto
+  if (
+    nombreColumna &&
+    (nombreColumna.includes('precio') ||
+      nombreColumna.includes('monto') ||
+      nombreColumna.includes('subtotal'))
+  ) {
+    return (
+      '$' +
+      parseFloat(valor).toLocaleString('es-AR', {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2,
+      })
+    )
+  }
+
+  // Formatear fechas
+  if (nombreColumna === 'fecha' && valor) {
+    return new Date(valor).toLocaleDateString('es-AR')
+  }
+
   if (typeof valor === 'string' && valor.length > 100) return valor.substring(0, 100) + '...'
   return valor
 }

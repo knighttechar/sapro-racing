@@ -36,6 +36,7 @@
 
     <q-card-section class="q-pa-sm text-center">
       <div class="text-caption text-grey-6">CÓDIGO: {{ codigo }}</div>
+      <div class="text-caption text-primary text-weight-bold">{{ marca }}</div>
       <div class="text-subtitle2 text-weight-bold ellipsis">{{ nombre }}</div>
 
       <div class="text-caption text-grey-7 ellipsis-2-lines" style="min-height: 32px">

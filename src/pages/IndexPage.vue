@@ -52,6 +52,8 @@ watch(() => route.query.filtro, actualizarFiltro)
 watch(() => route.query.busqueda, actualizarFiltro)
 </script>
 
+
+
 <style scoped>
 /* ... Mantén tus estilos de fondo aquí ... */
 .fondo-racing {
