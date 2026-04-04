@@ -5,6 +5,7 @@
       <span class="brand-separator">•</span>
       <span class="brand-sub">RACING</span>
     </div>
+    <img src="../assets/sapro.jpeg" alt="SAPRO" class="brand-image" />
   </div>
 </template>
 
@@ -16,12 +17,20 @@ defineEmits(['click'])
 .brand-logo {
   display: flex;
   align-items: center;
+  gap: 12px;
   transition: all 0.3s ease;
 }
 
 .brand-logo:hover {
   opacity: 0.8;
   transform: scale(1.05);
+}
+
+.brand-image {
+  height: 56px;
+  width: auto;
+  object-fit: contain;
+  border-radius: 0px;
 }
 
 .brand-text {

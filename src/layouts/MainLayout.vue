@@ -2,7 +2,7 @@
   <q-layout view="hHh Lpr lFf">
     <q-header elevated>
       <q-toolbar class="bg-grey-10 text-white q-py-sm">
-        <BrandLogo @click="irAInicio" class="q-ml-md" />
+        <BrandLogo @click="irAInicio" />
 
         <q-space />
 

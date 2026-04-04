@@ -52,7 +52,17 @@
                 label="Código"
                 filled
                 class="col-6"
-                :rules="[(val) => !!val || 'Requerido']"
+                :rules="[(val) => !!val || 'Requerido', validarCodigoUnico]"
+                :color="formPro.codigo ? (codigoDuplicado ? 'negative' : 'positive') : ''"
+                :hint="
+                  codigoDuplicado
+                    ? 'Este código ya existe'
+                    : formPro.codigo
+                      ? 'Código disponible'
+                      : ''
+                "
+                :persistent-hint="!!formPro.codigo"
+                @input="chequearCodigoUnico"
               />
               <q-input
                 v-model="formPro.precio"
@@ -116,6 +126,30 @@
 </template>
 
 <script setup>
+// --- Validación de código único ---
+const codigoDuplicado = ref(false)
+
+function chequearCodigoUnico() {
+  if (!formPro.value.codigo) {
+    codigoDuplicado.value = false
+    return
+  }
+  // Si estamos editando y el código no cambió, no marcar como duplicado
+  if (
+    esEdicion.value &&
+    productos.value.find((p) => p.id === formPro.value.id && p.codigo === formPro.value.codigo)
+  ) {
+    codigoDuplicado.value = false
+    return
+  }
+  codigoDuplicado.value = productos.value.some((p) => p.codigo === formPro.value.codigo)
+}
+
+function validarCodigoUnico(val) {
+  if (!val) return true
+  if (codigoDuplicado.value) return 'El código ya existe'
+  return true
+}
 /* eslint-disable */
 import { ref, onMounted, computed } from 'vue'
 import { useQuasar } from 'quasar'
@@ -253,6 +287,11 @@ const prepararEdicion = (pro) => {
 }
 
 const guardarProducto = async () => {
+  chequearCodigoUnico()
+  if (codigoDuplicado.value) {
+    $q.notify({ color: 'negative', message: 'El código ya existe, elige otro.' })
+    return
+  }
   loading.value = true
   try {
     if (esEdicion.value) {
@@ -297,4 +336,8 @@ onMounted(() => {
   isAdmin.value = localStorage.getItem('isLogged') === 'true'
   cargarProductos()
 })
+
+// Watch para validar código en tiempo real
+import { watch } from 'vue'
+watch(() => formPro.value.codigo, chequearCodigoUnico)
 </script>
