@@ -2,9 +2,7 @@
   <q-layout view="hHh Lpr lFf">
     <q-header elevated>
       <q-toolbar class="bg-grey-10 text-white q-py-sm">
-        <q-toolbar-title class="text-weight-bold q-ml-md cursor-pointer" @click="irAInicio">
-          SAPRO RACING
-        </q-toolbar-title>
+        <BrandLogo @click="irAInicio" class="q-ml-md" />
 
         <q-space />
 
@@ -125,6 +123,7 @@
 import { ref, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useQuasar } from 'quasar'
+import BrandLogo from 'components/BrandLogo.vue'
 
 const $q = useQuasar()
 const router = useRouter()

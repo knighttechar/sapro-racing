@@ -135,7 +135,7 @@ const categoriaMarcaMap = {
   Cascos: ['Hawk', 'Hawk'],
   Lubricantes: ['Castrol', 'Castrol'],
   Repuestos: ['Catimoto', 'Catimoto'],
-  Indumentaria: ['Ls2', 'Ls2'],
+  Indumentaria: ['Ls2', 'Hawk', 'Fox', 'Mac', 'Alpinestars'],
   Accesorios: ['Mac', 'Mac'],
 }
 
