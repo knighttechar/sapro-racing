@@ -13,12 +13,25 @@
       </q-card>
     </div>
 
-    <div v-for="pro in productosFiltrados" :key="pro.id" class="col-12 col-sm-4 col-md-3">
+    <div v-for="pro in productosPaginados" :key="pro.id" class="col-12 col-sm-4 col-md-3">
       <ProductCard
         v-bind="pro"
         :is-admin="isAdmin"
         @eliminar="confirmarEliminar"
         @editar="prepararEdicion"
+      />
+    </div>
+
+    <div v-if="totalPaginas > 1" class="col-12 flex flex-center q-mt-md">
+      <q-pagination
+        v-model="paginaActual"
+        :max="totalPaginas"
+        :max-pages="7"
+        color="primary"
+        input
+        direction-links
+        boundary-links
+        size="md"
       />
     </div>
 
@@ -127,6 +140,9 @@
 
 <script setup>
 // --- Validación de código único ---
+
+// --- Paginación --- (declaración única, después de props y productosFiltrados)
+// Declarar solo una vez después de props y productosFiltrados
 const codigoDuplicado = ref(false)
 
 function chequearCodigoUnico() {
@@ -151,7 +167,7 @@ function validarCodigoUnico(val) {
   return true
 }
 /* eslint-disable */
-import { ref, onMounted, computed } from 'vue'
+import { ref, onMounted, computed, watch } from 'vue'
 import { useQuasar } from 'quasar'
 import axios from 'axios'
 import ProductCard from './ProductCard.vue'
@@ -169,7 +185,7 @@ const categoriaMarcaMap = {
   Cascos: ['Hawk', 'Hawk'],
   Lubricantes: ['Castrol', 'Castrol'],
   Repuestos: ['Catimoto', 'Catimoto'],
-  Indumentaria: ['Ls2', 'Hawk', 'Fox', 'Mac', 'Alpinestars'],
+  Indumentaria: ['Ls2', 'Hawk', 'Fox', 'Mac', 'Alpinestars', '100%'],
   Accesorios: ['Mac', 'Mac'],
 }
 
@@ -218,6 +234,21 @@ const productosFiltrados = computed(() => {
     )
   }
   return res
+})
+
+// --- Paginación ---
+const paginaActual = ref(1)
+const productosPorPagina = 10
+const totalPaginas = computed(() => {
+  return Math.ceil(productosFiltrados.value.length / productosPorPagina)
+})
+const productosPaginados = computed(() => {
+  const start = (paginaActual.value - 1) * productosPorPagina
+  return productosFiltrados.value.slice(start, start + productosPorPagina)
+})
+// Reiniciar a la página 1 si cambia el filtro o búsqueda
+watch([() => props.filtroCategoria, () => props.busqueda], () => {
+  paginaActual.value = 1
 })
 
 const cargarProductos = async () => {
@@ -338,6 +369,5 @@ onMounted(() => {
 })
 
 // Watch para validar código en tiempo real
-import { watch } from 'vue'
 watch(() => formPro.value.codigo, chequearCodigoUnico)
 </script>

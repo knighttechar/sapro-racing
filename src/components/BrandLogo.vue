@@ -1,10 +1,5 @@
 <template>
   <div class="brand-logo cursor-pointer" @click="$emit('click')">
-    <div class="brand-text">
-      <span class="brand-main">SAPRO</span>
-      <span class="brand-separator">•</span>
-      <span class="brand-sub">RACING</span>
-    </div>
     <img src="../assets/sapro.jpeg" alt="SAPRO" class="brand-image" />
   </div>
 </template>

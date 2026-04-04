@@ -2,41 +2,39 @@
   <q-layout view="hHh Lpr lFf">
     <q-header elevated>
       <q-toolbar class="bg-grey-10 text-white q-py-sm">
-        <BrandLogo @click="irAInicio" />
-
-        <q-space />
-
-        <q-input
-          dark
-          dense
-          standout
-          v-model="search"
-          placeholder="Busca repuestos, marcas o accesorios..."
-          class="q-ml-md"
-          style="width: 50%"
-          @keyup.enter="irABusqueda"
-        >
-          <template v-slot:append>
-            <q-icon name="search" class="cursor-pointer" @click="irABusqueda" />
-          </template>
-        </q-input>
-
-        <q-space />
-
-        <div v-if="isAdmin" class="text-subtitle2 q-mr-md text-orange-5 row items-center">
-          <q-icon name="admin_panel_settings" class="q-mr-xs" />
-          {{ adminNombre }}
+        <div class="row items-center q-gutter-x-md" style="width: 100%">
+          <BrandLogo @click="irAInicio" class="q-ml-md" />
+          <q-space />
+          <q-input
+            dark
+            dense
+            standout
+            v-model="search"
+            placeholder="Busca repuestos, marcas o accesorios..."
+            class="q-ml-md"
+            style="min-width: 200px; max-width: 600px; width: 100%"
+            @keyup.enter="irABusqueda"
+            @update:model-value="busquedaEnTiempoReal"
+          >
+            <template v-slot:append>
+              <q-icon name="search" class="cursor-pointer" @click="irABusqueda" />
+            </template>
+          </q-input>
+          <q-space />
+          <div v-if="isAdmin" class="text-subtitle2 q-mr-md text-orange-5 row items-center">
+            <q-icon name="admin_panel_settings" class="q-mr-xs" />
+            {{ adminNombre }}
+          </div>
+          <q-btn
+            flat
+            dense
+            no-caps
+            color="white"
+            :icon="isAdmin ? 'logout' : 'login'"
+            :label="isAdmin ? 'Salir' : 'Iniciar Sesión'"
+            @click="handleAuthAction"
+          />
         </div>
-
-        <q-btn
-          flat
-          dense
-          no-caps
-          color="white"
-          :icon="isAdmin ? 'logout' : 'login'"
-          :label="isAdmin ? 'Salir' : 'Iniciar Sesión'"
-          @click="handleAuthAction"
-        />
       </q-toolbar>
 
       <div
@@ -148,6 +146,11 @@ const irABusqueda = () => {
   if (search.value.trim()) {
     router.push({ path: '/', query: { busqueda: search.value } })
   }
+}
+
+// Nueva función: búsqueda en tiempo real
+const busquedaEnTiempoReal = (val) => {
+  router.replace({ path: '/', query: val.trim() ? { busqueda: val } : {} })
 }
 
 const irADatos = () => {

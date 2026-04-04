@@ -154,6 +154,8 @@ try {
         $descripcion = trim($data['descripcion'] ?? '');
         $categoria = trim($data['categoria'] ?? 'Sin Categoría');
         $marca = trim($data['marca'] ?? 'Genérico');
+        // Sanitizar marca para evitar conflictos con caracteres especiales
+        $marca = preg_replace('/[^a-zA-Z0-9%áéíóúÁÉÍÓÚñÑ\s\-\.]/u', '', $marca);
 
         // Validación
         $errores = [];

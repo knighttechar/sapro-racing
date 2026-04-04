@@ -55,6 +55,8 @@ try {
     $descripcion = trim($_POST['descripcion'] ?? '');
     $categoria = trim($_POST['categoria'] ?? 'Sin Categoría');
     $marca = trim($_POST['marca'] ?? 'Genérico');
+    // Sanitizar marca para evitar conflictos con caracteres especiales
+    $marca = preg_replace('/[^a-zA-Z0-9%áéíóúÁÉÍÓÚñÑ\s\-\.]/u', '', $marca);
 
     $errores = [];
 
