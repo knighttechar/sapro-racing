@@ -1,6 +1,7 @@
 <template>
   <div class="row q-col-gutter-md q-pa-md">
-    <div v-if="isAdmin" class="col-12 col-sm-4 col-md-3">
+    <!-- Tarjeta de Agregar Producto (Solo Admin, oculta en xs) -->
+    <div v-if="isAdmin" class="col-12 col-sm-6 col-md-4 col-lg-3 gt-xs">
       <q-card
         class="my-card no-shadow border-dashed flex flex-center cursor-pointer"
         style="height: 100%; min-height: 400px; border: 2px dashed #1976d2; background: #f8f9fa"
@@ -13,7 +14,8 @@
       </q-card>
     </div>
 
-    <div v-for="pro in productosPaginados" :key="pro.id" class="col-12 col-sm-4 col-md-3">
+    <!-- Productos: 2 cols en móvil, 3 en tablet, 4 en desktop -->
+    <div v-for="pro in productosPaginados" :key="pro.id" class="col-6 col-sm-4 col-md-3 col-lg-3">
       <ProductCard
         v-bind="pro"
         :is-admin="isAdmin"
@@ -22,11 +24,12 @@
       />
     </div>
 
+    <!-- Paginación -->
     <div v-if="totalPaginas > 1" class="col-12 flex flex-center q-mt-md">
       <q-pagination
         v-model="paginaActual"
         :max="totalPaginas"
-        :max-pages="7"
+        :max-pages="$q.screen.xs ? 5 : 7"
         color="primary"
         input
         direction-links
@@ -35,6 +38,7 @@
       />
     </div>
 
+    <!-- Sin productos -->
     <div v-if="productosFiltrados.length === 0" class="col-12 text-center q-pa-xl">
       <q-icon name="search_off" size="64px" color="grey-5" />
       <div class="text-h6 text-grey-6 q-mt-md">

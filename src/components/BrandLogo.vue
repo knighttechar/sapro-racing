@@ -26,6 +26,20 @@ defineEmits(['click'])
   width: auto;
   object-fit: contain;
   border-radius: 0px;
+  transition: height 0.3s ease;
+}
+
+/* Optimización para móviles en brand-image */
+@media (max-width: 599px) {
+  .brand-image {
+    height: 48px;
+  }
+}
+
+@media (max-width: 360px) {
+  .brand-image {
+    height: 40px;
+  }
 }
 
 .brand-text {

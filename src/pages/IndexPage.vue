@@ -1,21 +1,28 @@
 <template>
   <q-page class="fondo-racing">
-    <div class="q-pa-md row items-center justify-between backdrop-blur">
+    <!-- HEADER RESPONSIVO -->
+    <div class="q-pa-md q-pa-xs row items-center justify-between backdrop-blur" style="gap: 0.5rem">
+      <!-- Textos (Responsive) -->
       <div class="column">
-        <div class="text-h6 text-grey-9 text-weight-bold">CATÁLOGO DE PRODUCTOS</div>
-        <div class="text-subtitle2 text-primary text-weight-bold">
+        <div class="text-h6 text-subtitle1-xs text-grey-9 text-weight-bold">
+          CATÁLOGO DE PRODUCTOS
+        </div>
+        <div class="text-subtitle2 text-caption-xs text-primary text-weight-bold">
           {{ textoFiltro }}
         </div>
       </div>
-      <q-chip outline color="grey-9" icon="event" class="bg-white">
+
+      <!-- Chip de fecha (Oculto en xs) -->
+      <q-chip outline color="grey-9" icon="event" class="bg-white gt-xs">
         Actualizado: {{ fechaHoy }}
       </q-chip>
     </div>
 
+    <!-- GRID DE PRODUCTOS -->
     <ProductGrid :filtro-categoria="categoriaActual" :busqueda="termBusqueda" />
 
+    <!-- CARRITO WIDGET (Solo para admin) -->
     <CartWidget v-if="isAdmin" />
-
   </q-page>
 </template>
 
@@ -52,8 +59,6 @@ watch(() => route.query.filtro, actualizarFiltro)
 watch(() => route.query.busqueda, actualizarFiltro)
 </script>
 
-
-
 <style scoped>
 /* ... Mantén tus estilos de fondo aquí ... */
 .fondo-racing {
@@ -68,7 +73,7 @@ watch(() => route.query.busqueda, actualizarFiltro)
 .backdrop-blur {
   background: rgba(255, 255, 255, 0.5);
   backdrop-filter: blur(5px);
-  border-bottom: 1px solid rgba(0,0,0,0.05);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
 }
 .q-page {
   max-width: 100%;

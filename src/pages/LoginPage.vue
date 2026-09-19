@@ -1,24 +1,45 @@
 <template>
   <q-layout view="Lhh Lpr lFf">
     <q-page-container>
-      <q-page class="bg-grey-10 flex flex-center window-height window-width">
-
-        <q-card class="login-card no-shadow" bordered style="width: 100%; max-width: 400px; border-radius: 15px;">
-          <q-card-section class="text-center q-pa-xl">
-             <div class="text-h4 text-weight-bolder text-grey-10 q-mb-xs">SAPRO</div>
-             <div class="text-subtitle1 text-grey-7">Panel de Administración</div>
+      <q-page class="bg-grey-10 flex flex-center window-height window-width q-pa-md">
+        <q-card
+          class="login-card no-shadow"
+          bordered
+          style="width: 100%; max-width: 400px; border-radius: 15px"
+        >
+          <!-- HEADER -->
+          <q-card-section class="text-center q-pa-xl q-pa-sm">
+            <div class="text-h4 text-h5-sm text-weight-bolder text-grey-10 q-mb-xs">SAPRO</div>
+            <div class="text-subtitle1 text-caption-xs text-grey-7">Panel de Administración</div>
           </q-card-section>
 
-          <q-card-section class="q-px-lg">
+          <!-- FORM -->
+          <q-card-section class="q-px-lg q-px-md">
             <q-form @submit="handleLogin" class="q-gutter-md">
-              <q-input v-model="form.usuario" label="Usuario" filled color="grey-10">
+              <!-- Input Usuario -->
+              <q-input
+                v-model="form.usuario"
+                label="Usuario"
+                filled
+                color="grey-10"
+                autocomplete="username"
+              >
                 <template v-slot:prepend><q-icon name="person" /></template>
               </q-input>
 
-              <q-input v-model="form.password" label="Contraseña" type="password" filled color="grey-10">
+              <!-- Input Contraseña -->
+              <q-input
+                v-model="form.password"
+                label="Contraseña"
+                type="password"
+                filled
+                color="grey-10"
+                autocomplete="current-password"
+              >
                 <template v-slot:prepend><q-icon name="lock" /></template>
               </q-input>
 
+              <!-- Botón Ingresar -->
               <div class="q-mt-xl">
                 <q-btn
                   label="INGRESAR"
@@ -32,11 +53,11 @@
             </q-form>
           </q-card-section>
 
+          <!-- FOOTER -->
           <q-card-section class="text-center q-pb-lg">
             <q-btn flat color="grey-7" label="Volver al inicio" to="/" no-caps />
           </q-card-section>
         </q-card>
-
       </q-page>
     </q-page-container>
   </q-layout>
@@ -64,7 +85,7 @@ const handleLogin = async () => {
         color: 'positive',
         message: response.data.mensaje,
         position: 'top',
-        icon: 'check_circle'
+        icon: 'check_circle',
       })
 
       // 2. Guardamos los datos en el navegador
@@ -80,13 +101,12 @@ const handleLogin = async () => {
       setTimeout(() => {
         location.reload()
       }, 500)
-
     } else {
       $q.notify({
         color: 'negative',
         message: response.data.mensaje,
         position: 'top',
-        icon: 'error'
+        icon: 'error',
       })
     }
   } catch (error) {
@@ -94,7 +114,7 @@ const handleLogin = async () => {
     $q.notify({
       color: 'negative',
       message: 'No se pudo conectar con el servidor',
-      position: 'top'
+      position: 'top',
     })
   } finally {
     loading.value = false
@@ -107,6 +127,6 @@ const handleLogin = async () => {
   width: 100%;
   max-width: 400px;
   border-radius: 12px;
-  box-shadow: 0 4px 15px rgba(0,0,0,0.05) !important;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05) !important;
 }
 </style>

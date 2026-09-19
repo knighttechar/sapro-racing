@@ -1,10 +1,12 @@
 <template>
   <q-card class="my-card no-shadow border-grey-3" bordered>
+    <!-- IMAGEN CON BOTONES ADMIN -->
     <q-img :src="getImageUrl(imagen)" ratio="1">
+      <!-- Botones Editar/Eliminar en esquina superior derecha -->
       <div
         v-if="isAdmin"
         class="absolute-top-right q-gutter-xs q-pa-sm"
-        style="background: transparent"
+        style="background: rgba(0, 0, 0, 0.3); border-radius: 4px"
       >
         <q-btn
           round
@@ -15,10 +17,19 @@
           @click="
             $emit('editar', { id, nombre, precio, stock, descripcion, codigo, categoria, marca })
           "
+          class="shadow-2"
         />
-        <q-btn round color="negative" icon="delete" size="sm" @click="$emit('eliminar', id)" />
+        <q-btn
+          round
+          color="negative"
+          icon="delete"
+          size="sm"
+          @click="$emit('eliminar', id)"
+          class="shadow-2"
+        />
       </div>
 
+      <!-- Botón Carrito en esquina inferior derecha -->
       <div v-if="isAdmin" class="absolute-bottom-right q-pa-sm">
         <q-btn
           round
@@ -29,23 +40,39 @@
         />
       </div>
 
+      <!-- Loader -->
       <template v-slot:loading>
         <q-spinner-ios color="white" />
       </template>
     </q-img>
 
-    <q-card-section class="q-pa-sm text-center">
-      <div class="text-caption text-grey-6">CÓDIGO: {{ codigo }}</div>
-      <div class="text-caption text-primary text-weight-bold">{{ marca }}</div>
-      <div class="text-subtitle2 text-weight-bold ellipsis">{{ nombre }}</div>
+    <!-- CONTENIDO DE LA TARJETA -->
+    <q-card-section class="q-pa-xs q-pa-sm q-md-pa-md text-center">
+      <!-- Código -->
+      <div class="text-caption text-grey-6 ellipsis">CÓDIGO: {{ codigo }}</div>
 
+      <!-- Marca -->
+      <div class="text-caption text-primary text-weight-bold ellipsis">
+        {{ marca }}
+      </div>
+
+      <!-- Nombre (Responsive) -->
+      <div class="text-subtitle2 text-subtitle1-sm text-weight-bold ellipsis q-my-xs">
+        {{ nombre }}
+      </div>
+
+      <!-- Descripción (máximo 2 líneas) -->
       <div class="text-caption text-grey-7 ellipsis-2-lines" style="min-height: 32px">
         {{ descripcion || 'Sin descripción' }}
       </div>
 
-      <div class="text-h6 text-blue-7 q-mt-xs">${{ precio }}</div>
+      <!-- Precio (Grande y destacado) -->
+      <div class="text-h6 text-h5-sm text-blue-7 q-my-sm text-weight-bold">
+        ${{ parseFloat(precio).toFixed(2) }}
+      </div>
 
-      <q-badge :color="colorStock" class="q-pa-xs"> STOCK: {{ stock }} </q-badge>
+      <!-- Stock Badge -->
+      <q-badge :color="colorStock" class="q-pa-xs text-caption"> 📦 STOCK: {{ stock }} </q-badge>
     </q-card-section>
   </q-card>
 </template>

@@ -14,37 +14,46 @@
     </q-page-sticky>
 
     <q-dialog v-model="isOpen" position="right" full-height maximized>
-      <q-card style="width: 400px; max-width: 100vw" class="column">
+      <q-card style="width: 100%; max-width: 400px" class="column">
+        <!-- HEADER -->
         <q-card-section class="bg-grey-9 text-white row items-center q-pb-sm">
           <div class="text-h6">Nuevo Pedido</div>
           <q-space />
           <q-btn icon="close" flat round dense v-close-popup />
         </q-card-section>
 
+        <!-- CONTENIDO (Items) -->
         <q-card-section class="col scroll q-pa-none">
+          <!-- Carrito vacío -->
           <div v-if="carrito.length === 0" class="column flex-center full-height text-grey-6">
             <q-icon name="shopping_cart_checkout" size="64px" />
             <div class="q-mt-md">El carrito está vacío</div>
           </div>
 
+          <!-- Items en carrito -->
           <q-list separator v-else>
-            <q-item v-for="item in carrito" :key="item.id" class="q-py-md">
+            <q-item v-for="item in carrito" :key="item.id" class="q-py-sm q-px-md">
+              <!-- Avatar/Imagen -->
               <q-item-section avatar>
                 <q-avatar rounded size="50px">
                   <img :src="getImageUrl(item.imagen)" style="object-fit: cover" />
                 </q-avatar>
               </q-item-section>
 
+              <!-- Nombre, código, precio -->
               <q-item-section>
-                <q-item-label class="text-weight-bold">{{ item.nombre }}</q-item-label>
+                <q-item-label class="text-weight-bold ellipsis">
+                  {{ item.nombre }}
+                </q-item-label>
                 <q-item-label caption>Código: {{ item.codigo }}</q-item-label>
-                <q-item-label class="text-primary text-weight-bold"
-                  >${{ item.precio * item.cantidad }}</q-item-label
-                >
+                <q-item-label class="text-primary text-weight-bold">
+                  ${{ (item.precio * item.cantidad).toFixed(2) }}
+                </q-item-label>
               </q-item-section>
 
-              <q-item-section side style="min-width: 100px">
-                <div class="row items-center no-wrap bg-grey-3 rounded-borders">
+              <!-- Controles cantidad (Responsive) -->
+              <q-item-section side class="q-gutter-xs">
+                <div class="row items-center bg-grey-3 rounded-borders">
                   <q-btn
                     flat
                     dense
@@ -54,7 +63,7 @@
                     @click="item.cantidad > 1 ? item.cantidad-- : eliminarDelCarrito(item.id)"
                     color="grey-8"
                   />
-                  <div class="q-px-sm text-weight-bold">{{ item.cantidad }}</div>
+                  <div class="q-px-xs text-weight-bold text-caption">{{ item.cantidad }}</div>
                   <q-btn
                     flat
                     dense
@@ -65,9 +74,8 @@
                     color="grey-8"
                   />
                 </div>
-              </q-item-section>
 
-              <q-item-section side>
+                <!-- Botón Eliminar -->
                 <q-btn
                   flat
                   round
@@ -81,10 +89,11 @@
           </q-list>
         </q-card-section>
 
+        <!-- FOOTER - Total y Botón -->
         <q-card-section class="bg-grey-2 border-top">
           <div class="row justify-between items-center q-mb-md">
-            <div class="text-subtitle1 text-grey-8">Total Estimado:</div>
-            <div class="text-h5 text-primary text-weight-bolder">${{ totalPrecio }}</div>
+            <div class="text-subtitle2 text-subtitle1-sm text-grey-8">Total Estimado:</div>
+            <div class="text-h5 text-h6-sm text-primary text-weight-bolder">${{ totalPrecio }}</div>
           </div>
 
           <q-btn

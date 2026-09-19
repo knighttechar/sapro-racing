@@ -1,1 +1,110 @@
 // app global css in SCSS form
+
+// ===== RESPONSIVE UTILITIES =====
+
+// Clases de texto responsive (ej: text-h5-sm para subtitle1 en móviles)
+@media (max-width: 599px) {
+  .text-h1-sm {
+    font-size: 1.875rem;
+  }
+  .text-h2-sm {
+    font-size: 1.575rem;
+  }
+  .text-h3-sm {
+    font-size: 1.375rem;
+  }
+  .text-h4-sm {
+    font-size: 1.25rem;
+  }
+  .text-h5-sm {
+    font-size: 1.1rem;
+  }
+  .text-h6-sm {
+    font-size: 1rem;
+  }
+  .text-subtitle1-sm {
+    font-size: 1rem;
+  }
+  .text-subtitle2-sm {
+    font-size: 0.875rem;
+  }
+  .text-caption-xs {
+    font-size: 0.625rem;
+  }
+}
+
+// ===== OPTIMIZACIONES MÓVILES =====
+
+// Mejorar padding en tarjetas en móviles
+@media (max-width: 599px) {
+  .q-card__section {
+    padding: 0.5rem;
+  }
+}
+
+// Hacer inputs más grandes en móviles (target más fácil)
+@media (max-width: 599px) {
+  .q-input__control {
+    min-height: 44px;
+  }
+
+  .q-btn {
+    min-height: 44px;
+  }
+}
+
+// Optimizar drilling de toolbar en móviles
+@media (max-width: 599px) {
+  .q-toolbar {
+    min-height: 56px;
+  }
+
+  .q-toolbar__title {
+    font-size: 1rem;
+  }
+}
+
+// ===== ESQUINAS REDONDEADAS Y SOMBRAS =====
+
+// Hacer que las tarjetas de productos se vean mejor
+.my-card {
+  border-radius: 8px;
+  transition: all 0.3s ease;
+
+  @media (max-width: 599px) {
+    border-radius: 4px;
+  }
+}
+
+// ===== SCROLL PERSONALIZADO =====
+
+.scroll {
+  scroll-behavior: smooth;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+// ===== ANIMACIONES MÓVIL-FRIENDLY =====
+
+// Reducir animaciones en dispositivos con preferencia de movimiento reducido
+@media (prefers-reduced-motion: reduce) {
+  .my-card,
+  .q-item,
+  .q-btn {
+    transition: none !important;
+  }
+}
+
+// ===== MEJORAS DRAWER =====
+
+.q-drawer {
+  @media (max-width: 599px) {
+    width: 100%;
+    max-width: 80vw;
+  }
+}
